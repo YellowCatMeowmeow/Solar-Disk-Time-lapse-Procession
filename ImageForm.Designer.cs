@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ImageForm));
             pictureBoxImageShow = new System.Windows.Forms.PictureBox();
             trackBarZoom = new System.Windows.Forms.TrackBar();
             trackBarFrame = new System.Windows.Forms.TrackBar();
@@ -125,9 +126,11 @@
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1001, 649);
+            ControlBox = false;
             Controls.Add(panelImage);
             Controls.Add(groupBoxZoom);
             Controls.Add(groupBoxFrame);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "ImageForm";
             Text = "图像显示";
             ((System.ComponentModel.ISupportInitialize)pictureBoxImageShow).EndInit();

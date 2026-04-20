@@ -14,11 +14,13 @@
     <SelfContained>false</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Platforms>x64</Platforms>
+    <ApplicationIcon>7tbub-49o0f-001.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="UpdateLog.json" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="7tbub-49o0f-001.ico" />
     <Content Include="UpdateLog.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -31,5 +33,20 @@
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.13.0.20260302" />
     <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="cfitsio.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Funpack.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="zlib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="zlib1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

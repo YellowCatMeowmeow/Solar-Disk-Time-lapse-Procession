@@ -17,6 +17,7 @@ namespace SolarImageProcessionCsharp
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -25,6 +26,10 @@ namespace SolarImageProcessionCsharp
             aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             updatelogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             groupFileSelect = new System.Windows.Forms.GroupBox();
+            checkReadFit = new System.Windows.Forms.CheckBox();
+            checkReadPng = new System.Windows.Forms.CheckBox();
+            checkReadJpg = new System.Windows.Forms.CheckBox();
+            checkReadTif = new System.Windows.Forms.CheckBox();
             txtFolderPath = new System.Windows.Forms.TextBox();
             btnLoadPath = new System.Windows.Forms.Button();
             btnSelectFolder = new System.Windows.Forms.Button();
@@ -94,10 +99,6 @@ namespace SolarImageProcessionCsharp
             radioRotationAlignPhaseCorrelate = new System.Windows.Forms.RadioButton();
             radioMiddleFlip = new System.Windows.Forms.RadioButton();
             radioFieldRotation = new System.Windows.Forms.RadioButton();
-            checkReadTif = new System.Windows.Forms.CheckBox();
-            checkReadJpg = new System.Windows.Forms.CheckBox();
-            checkReadPng = new System.Windows.Forms.CheckBox();
-            checkReadFit = new System.Windows.Forms.CheckBox();
             menuStrip1.SuspendLayout();
             groupFileSelect.SuspendLayout();
             groupProcess.SuspendLayout();
@@ -196,6 +197,46 @@ namespace SolarImageProcessionCsharp
             groupFileSelect.TabIndex = 0;
             groupFileSelect.TabStop = false;
             groupFileSelect.Text = "文件选择";
+            // 
+            // checkReadFit
+            // 
+            checkReadFit.AutoSize = true;
+            checkReadFit.Location = new System.Drawing.Point(287, 20);
+            checkReadFit.Name = "checkReadFit";
+            checkReadFit.Size = new System.Drawing.Size(73, 21);
+            checkReadFit.TabIndex = 6;
+            checkReadFit.Text = "FIT/FITS";
+            checkReadFit.UseVisualStyleBackColor = true;
+            // 
+            // checkReadPng
+            // 
+            checkReadPng.AutoSize = true;
+            checkReadPng.Location = new System.Drawing.Point(213, 20);
+            checkReadPng.Name = "checkReadPng";
+            checkReadPng.Size = new System.Drawing.Size(53, 21);
+            checkReadPng.TabIndex = 5;
+            checkReadPng.Text = "PNG";
+            checkReadPng.UseVisualStyleBackColor = true;
+            // 
+            // checkReadJpg
+            // 
+            checkReadJpg.AutoSize = true;
+            checkReadJpg.Location = new System.Drawing.Point(118, 20);
+            checkReadJpg.Name = "checkReadJpg";
+            checkReadJpg.Size = new System.Drawing.Size(81, 21);
+            checkReadJpg.TabIndex = 4;
+            checkReadJpg.Text = "JPG/JPEG";
+            checkReadJpg.UseVisualStyleBackColor = true;
+            // 
+            // checkReadTif
+            // 
+            checkReadTif.AutoSize = true;
+            checkReadTif.Location = new System.Drawing.Point(19, 20);
+            checkReadTif.Name = "checkReadTif";
+            checkReadTif.Size = new System.Drawing.Size(72, 21);
+            checkReadTif.TabIndex = 3;
+            checkReadTif.Text = "TIF/TIFF";
+            checkReadTif.UseVisualStyleBackColor = true;
             // 
             // txtFolderPath
             // 
@@ -927,52 +968,13 @@ namespace SolarImageProcessionCsharp
             radioFieldRotation.Text = "经纬仪场旋校准";
             radioFieldRotation.UseVisualStyleBackColor = true;
             // 
-            // checkReadTif
-            // 
-            checkReadTif.AutoSize = true;
-            checkReadTif.Location = new System.Drawing.Point(19, 20);
-            checkReadTif.Name = "checkReadTif";
-            checkReadTif.Size = new System.Drawing.Size(72, 21);
-            checkReadTif.TabIndex = 3;
-            checkReadTif.Text = "TIF/TIFF";
-            checkReadTif.UseVisualStyleBackColor = true;
-            // 
-            // checkReadJpg
-            // 
-            checkReadJpg.AutoSize = true;
-            checkReadJpg.Location = new System.Drawing.Point(118, 20);
-            checkReadJpg.Name = "checkReadJpg";
-            checkReadJpg.Size = new System.Drawing.Size(81, 21);
-            checkReadJpg.TabIndex = 4;
-            checkReadJpg.Text = "JPG/JPEG";
-            checkReadJpg.UseVisualStyleBackColor = true;
-            // 
-            // checkReadPng
-            // 
-            checkReadPng.AutoSize = true;
-            checkReadPng.Location = new System.Drawing.Point(213, 20);
-            checkReadPng.Name = "checkReadPng";
-            checkReadPng.Size = new System.Drawing.Size(53, 21);
-            checkReadPng.TabIndex = 5;
-            checkReadPng.Text = "PNG";
-            checkReadPng.UseVisualStyleBackColor = true;
-            // 
-            // checkReadFit
-            // 
-            checkReadFit.AutoSize = true;
-            checkReadFit.Location = new System.Drawing.Point(287, 20);
-            checkReadFit.Name = "checkReadFit";
-            checkReadFit.Size = new System.Drawing.Size(73, 21);
-            checkReadFit.TabIndex = 6;
-            checkReadFit.Text = "FIT/FITS";
-            checkReadFit.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             ClientSize = new System.Drawing.Size(896, 742);
             Controls.Add(splitContainerMainForm);
             Controls.Add(menuStrip1);
             Controls.Add(groupLogText);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "MainForm";
             Text = "太阳图像对齐工具";
             menuStrip1.ResumeLayout(false);

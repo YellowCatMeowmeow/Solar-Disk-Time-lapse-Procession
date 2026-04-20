@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace SolarImageProcessionCsharp
@@ -939,13 +940,21 @@ namespace SolarImageProcessionCsharp
                 DateTime time = ExtractUniversalTimeFromName(file);
 
                 string gongUrl = FindClosestGongImageUrlCached(time, gongCache);
-                if (string.IsNullOrEmpty(gongUrl)) return 0.0;
+                if (string.IsNullOrEmpty(gongUrl)) 
+                {
+                    mainForm.Log($"无法连接到 GONG 网站，可能是本地网络问题或网站无法连接");
+                    return 0.0; 
+                } 
 
                 if (isLog)
                     mainForm.Log($"GONG Ha 参考图像 → {gongUrl}");
 
                 using Mat reference = DownloadAndConvertGongToMat(gongUrl, mainForm, isLog);
-                if (reference == null || reference.Empty()) return 0.0;
+                if (reference == null || reference.Empty())
+                {
+                    mainForm.Log($"无法下载 GONG Ha 参考图像，可能是本地网络问题或网站无法连接");
+                    return 0.0;
+                }
 
                 using Mat gray = new();
 
@@ -1034,27 +1043,35 @@ namespace SolarImageProcessionCsharp
             try
             {
                 string dayKey = targetTime.ToString("yyyyMMdd");
+                // 优先使用缓存
                 if (dayCache != null && dayCache.ContainsKey(dayKey))
                     return dayCache[dayKey];
 
+                // 网络请求 + 解析全部包裹在安全逻辑内
                 string dayPath = $"https://gong2.nso.edu/HA/haf/{targetTime:yyyyMM}/{targetTime:yyyyMMdd}/";
-                string page = new System.Net.WebClient().DownloadString(dayPath);
+                string page = null;
+
+                // 安全下载网页内容
+                using (var webClient = new System.Net.WebClient())
+                {
+                    page = webClient.DownloadString(dayPath);
+                }
 
                 DateTime bestDt = default;
                 string bestFile = null;
 
                 foreach (string line in page.Split('\n'))
                 {
-                    // 匹配所有以 h.fits.fz 结尾的文件（不限制 Bh）
                     if (line.Contains("Lh.fits.fz"))
                     {
                         int startA = line.IndexOf("href=\"") + 6;
                         int endB = line.IndexOf(".fits.fz", startA) + 8;
-                        if (startA < 6 || endB > line.Length) continue;
+                        if (startA < 6 || endB > line.Length)
+                            continue;
 
                         string fn = line.Substring(startA, endB - startA);
 
-                        // 🔥 只改这里：让 dt 保持 UTC，不转本地时间！
+                        // 严格UTC时间解析
                         if (DateTime.TryParseExact(fn.Substring(0, 14), "yyyyMMddHHmmss",
                             CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
                         {
@@ -1068,10 +1085,17 @@ namespace SolarImageProcessionCsharp
                 }
 
                 string bestUrl = bestFile == null ? null : $"{dayPath}{bestFile}";
-                if (dayCache != null) dayCache[dayKey] = bestUrl;
+                if (dayCache != null)
+                    dayCache[dayKey] = bestUrl;
+
                 return bestUrl;
             }
-            catch { return null; }
+            catch
+            {
+                // 所有异常：网络失败、文件不存在、解析错误、超时等
+                // 统一静默处理，不抛错，直接返回null
+                return null;
+            }
         }
 
         private static DateTime ExtractUniversalTimeFromName(string fileName)
@@ -1100,23 +1124,18 @@ namespace SolarImageProcessionCsharp
             Directory.CreateDirectory(tempDir);
 
             string id = Guid.NewGuid().ToString("N");
-
             string tempFz = Path.Combine(tempDir, $"{id}.fits.fz");
             string fits = Path.Combine(tempDir, $"{id}.fits");
+            Mat mat = null;
 
             try
             {
-                // =========================
                 // 下载
-                // =========================
                 using (var wc = new System.Net.WebClient())
                     wc.DownloadFile(url, tempFz);
 
-                // =========================
                 // 解压
-                // =========================
                 string funpack = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Funpack.exe");
-
                 var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = funpack,
@@ -1125,25 +1144,18 @@ namespace SolarImageProcessionCsharp
                     CreateNoWindow = true,
                     WorkingDirectory = tempDir
                 });
-
                 process.WaitForExit();
 
-                // 删除压缩包
                 File.Delete(tempFz);
-
-                // 🔥 关键：等待 FITS 可访问（避免锁）
                 WaitFileReady(fits);
 
-                // =========================
-                // 读取
-                // =========================
-                Mat mat = FitsToMat(fits, isLog);
+                // 读取 FITS 并确保释放
+                mat = FitsToMat(fits, isLog);
 
-                // 🔥 立即释放文件（避免后续锁）
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                File.Delete(fits);
+                // ==============================
+                // 🔥 重点：先确保文件释放，再删
+                // ==============================
+                DeleteFileSafely(fits);
 
                 if (isLog && mat != null && !mat.Empty())
                     mainForm.Log("✅ GONG 标准图已加载");
@@ -1155,8 +1167,41 @@ namespace SolarImageProcessionCsharp
                 if (isLog)
                     mainForm.Log($"❌ GONG 处理失败：{ex.Message}");
 
-                return null;
+                // 失败也要强制删除
+                DeleteFileSafely(tempFz);
+                DeleteFileSafely(fits);
+
+                return mat ?? null;
             }
+        }
+
+        // 🔥 新增：安全删除文件（解决占用问题）
+        private static void DeleteFileSafely(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    // 强制释放
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+
+                    // 等待文件不被占用
+                    for (int retry = 0; retry < 5; retry++)
+                    {
+                        try
+                        {
+                            File.Delete(path);
+                            break;
+                        }
+                        catch
+                        {
+                            Thread.Sleep(50);
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         private static void WaitFileReady(string path, int timeoutMs = 3000)

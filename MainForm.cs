@@ -573,24 +573,35 @@ namespace SolarImageProcessionCsharp
                                 total += mainRotationAngles[i];
 
                             totalRotationAngles.Add(total);
-                            Log($"执行旋转校准 → 第{i + 1}张图旋总转角度: {total:F2}°");
                         }
 
-                        if (ConfigManager.Config.RotationAlignmentMode == "PhaseCorrelate")
+                        if (totalRotationAngles.All(angle => Math.Abs(angle) < 1e-9))
                         {
-                            lblStatus.Text = "相位相关法旋转校准中...";
-                            Log("相位相关法旋转校准中...");
+                            Log("所有图像旋转角度均为0°，跳过旋转校准！");
+                            rotationcalibrated = process_state_images.Select(mat => mat.Clone()).ToList();
                         }
-                        else if (ConfigManager.Config.RotationAlignmentMode == "FeatureAlign")
+                        else
                         {
-                            lblStatus.Text = "特征点法旋转校准中...";
-                            Log("特征点法旋转校准中...");
+                            for (int i = 0; i < count; i++)
+                            {
+                                Log($"执行旋转校准 → 第{i + 1}张图旋总转角度: {totalRotationAngles[i]:F2}°");
+                            }
+                            if (ConfigManager.Config.RotationAlignmentMode == "PhaseCorrelate")
+                            {
+                                lblStatus.Text = "相位相关法旋转校准中...";
+                                Log("相位相关法旋转校准中...");
+                            }
+                            else if (ConfigManager.Config.RotationAlignmentMode == "FeatureAlign")
+                            {
+                                lblStatus.Text = "特征点法旋转校准中...";
+                                Log("特征点法旋转校准中...");
+                            }
+
+                            await Task.Delay(10);
+                            await Task.Run(() => rotationcalibrated = ImageAlignment.CorrectRotationAndScaleForImages(process_state_images, angles: totalRotationAngles));
+                            ImageIO.SaveImages(rotationcalibrated, _imagePaths, Path.Combine(root, "rotationCalibrated"));
+                            process_state = "旋转校准";
                         }
-                            
-                        await Task.Delay(10);
-                        await Task.Run(() => rotationcalibrated = ImageAlignment.CorrectRotationAndScaleForImages(process_state_images, angles: totalRotationAngles));
-                        ImageIO.SaveImages(rotationcalibrated, _imagePaths, Path.Combine(root, "rotationCalibrated"));
-                        process_state = "旋转校准";
                     }
                     process_state_images = rotationcalibrated.Select(mat => mat.Clone()).ToList();
                     if (rotationcalibrated != null) foreach (var m in rotationcalibrated) m.Dispose();
